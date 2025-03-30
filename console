@@ -1,0 +1,128 @@
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        //  Book Catalog
+        List<Book> books = new List<Book>
+        {
+            new Book { Id = 1, Title = "Programming book", Author = "Edward", Status = "Available" },
+            new Book { Id = 2, Title = "Learn OOP by Jona_dev", Author = "Juna Dev", Status = "Available" },
+            new Book { Id = 3, Title = "Java", Author = "Tablonskie", Status = "Available" },
+            new Book { Id = 4, Title = "Mastering Java by bossklein", Author = "klein", Status = "Available" },
+            new Book { Id = 5, Title = "Mastering c#", Author = "shamells", Status = "Available" }
+        };
+
+        // Eto User Registration
+        Console.WriteLine("==== User Registration ====");
+        Console.Write("Enter Username: ");
+        string username = Console.ReadLine();
+        Console.Write("Enter Password: ");
+        string password = Console.ReadLine();
+        Console.WriteLine("✅ User registered!");
+
+        bool exit = false;
+        while (!exit)
+        {
+            // Book Catalog Display naman to
+            Console.WriteLine("\n==== Book Catalog ====");
+            DisplayBooks(books);
+
+            // Borrow a book to
+            Console.Write("\nEnter Book ID to Borrow (1-5): ");
+            int borrowBookId = int.Parse(Console.ReadLine());
+            BorrowBook(books, borrowBookId, username);
+
+            // tatanong sa user kung gusto ba ibalik
+            Console.Write("\nGusto mo ba ibalik ang libro? (y/n): ");
+            string returnOption = Console.ReadLine().ToLower();
+
+            if (returnOption == "y")
+            {
+                // Return the book
+                Console.Write("\nIlagay mo ang id ng irereturn mong libro (1-5): ");
+                int returnBookId = int.Parse(Console.ReadLine());
+                ReturnBook(books, returnBookId, username);
+            }
+
+            // tatanong kung papatuloy ba
+            Console.Write("\nIpagpatuloy pa natin?? (y/n): ");
+            string continueOption = Console.ReadLine().ToLower();
+
+            if (continueOption == "n")
+            {
+                exit = true;
+                Console.WriteLine("seeyounextlife!");
+            }
+        }
+    }
+
+    // Display available books
+    static void DisplayBooks(List<Book> books)
+    {
+        foreach (var book in books)
+        {
+            Console.WriteLine($"{book.Id}. {book.Title} by {book.Author} - Status: {book.Status}");
+        }
+    }
+
+    // Borrow a book and log the borrow time
+    static void BorrowBook(List<Book> books, int bookId, string username)
+    {
+        var book = books.Find(b => b.Id == bookId);
+        if (book != null && book.Status == "Available")
+        {
+            book.Status = "Borrowed";
+            book.BorrowedBy = username;
+            book.BorrowDate = DateTime.Now;
+            Console.WriteLine($"✅ Book '{book.Title}' borrowed by {username} at {book.BorrowDate}.");
+        }
+        else
+        {
+            Console.WriteLine("❌ Error: Book is not available or invalid ID.");
+        }
+    }
+
+    // Return the book, calculate the overdue penalty, and log the return time
+    static void ReturnBook(List<Book> books, int bookId, string username)
+    {
+        var book = books.Find(b => b.Id == bookId && b.BorrowedBy == username);
+        if (book != null && book.Status == "Borrowed")
+        {
+            DateTime returnDate = DateTime.Now;
+            TimeSpan overdueDuration = returnDate - book.BorrowDate;
+            double penalty = 0;
+
+            if (overdueDuration.Days > 14)
+            {
+                penalty = (overdueDuration.Days - 14) * 1.0; // 1 dollar per overdue
+                Console.WriteLine($"❌ Book '{book.Title}' is overdue by {overdueDuration.Days - 14} days. Penalty: ${penalty}");
+            }
+            else
+            {
+                Console.WriteLine($"✅ Book '{book.Title}' returned on time at {returnDate}.");
+            }
+
+            // Reset status after return
+            book.Status = "Available";
+            book.BorrowedBy = null;
+            book.BorrowDate = DateTime.MinValue;
+        }
+        else
+        {
+            Console.WriteLine("❌ Error: You have not borrowed this book or invalid ID.");
+        }
+    }
+}
+
+public class Book
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public string Status { get; set; } // "Available" or "Borrowed"
+    public string BorrowedBy { get; set; }
+    public DateTime BorrowDate { get; set; }
+}
